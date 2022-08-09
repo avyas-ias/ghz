@@ -1,6 +1,7 @@
 package runner
 
 import (
+    "fmt"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
@@ -11,6 +12,7 @@ import (
 	"text/template/parse"
 	"time"
 
+	"github.com/jinzhu/configor"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/google/uuid"
 	"github.com/jhump/protoreflect/desc"
@@ -44,10 +46,15 @@ type CallData struct {
 	t *template.Template
 }
 
+type CallCustomData struct {
+    Data []string
+}
+
 var tmplFuncMap = template.FuncMap{
-	"newUUID":      newUUID,
-	"randomString": randomString,
-	"randomInt":    randomInt,
+	"newUUID"      : newUUID,
+	"randomString" : randomString,
+	"randomInt"    : randomInt,
+	"randomData"   : randomData,
 }
 
 var commonTemplate *template.Template = template.New("call_template_data").
@@ -238,4 +245,17 @@ func randomInt(min, max int) int {
 	}
 
 	return seededRand.Intn(max-min) + min
+}
+
+func randomData() string {
+    var Config CallCustomData
+    configor.Load(&Config, "randomCallData.yml")
+    var raw map[string]interface{}
+
+    if err := json.Unmarshal([]byte(Config.Data[randomInt(0,len(Config.Data))]),&raw); err != nil {
+            fmt.Errorf("Error while unmarshalling randomData : %v",err)
+    }
+    out, _ := json.Marshal(raw)
+    //     fmt.Printf("selected data - %s\n",string(out))
+    return string(out)
 }

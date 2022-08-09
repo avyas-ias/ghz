@@ -306,11 +306,15 @@ func createPayloadsFromJSON(data string, mtd *desc.MethodDescriptor) ([]*dynamic
 				inputs[i] = elemMsg
 			}
 		} else {
+		    var newData = data
 			inputs = make([]*dynamic.Message, 1)
 			inputs[0] = dynamic.NewMessage(md)
-			err := jsonpb.UnmarshalString(data, inputs[0])
+			if(string(newData[0])  == "\""){
+			    newData = newData[1:len(newData)-1]
+			}
+			err := jsonpb.UnmarshalString(newData, inputs[0])
 			if err != nil {
-				return nil, fmt.Errorf("Error creating message from data. Data: '%v' Error: %v", data, err.Error())
+				return nil, fmt.Errorf("Error creating message from data. Data: '%v' Error: %v", newData, err.Error())
 			}
 		}
 	}
